@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neptuno Explorer: Viaje al gigante azul</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap');
+
+:root {
+  --azul-profundo: #020813;
+  --azul-electrico: #001f54;
+  --cian: #00b4d8;
+  --cian-brillante: #48cae4;
+  --violeta: #3a0ca3;
+  --violeta-claro: #7209b7;
+  --negro: #03071e;
+  --blanco: #ffffff;
+  --naranja: #f77f00;
+  --dorado: #fcbf49;
+  --plateado: #e2e8f0;
+  --card-bg: rgba(6, 14, 38, 0.82);
+  --border-glow: rgba(0, 180, 216, 0.35);
+  --texto: #a8c6df;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--negro);
+  color: var(--plateado);
+  font-family: 'Exo 2', sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ======== CANVAS FONDO ======== */
+#starfield {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0; pointer-events: none;
+}
+
+/* ======== LAYOUT ======== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+
+/* ======== TIPOGRAFÍA ======== */
+.font-orbitron { font-family: 'Orbitron', monospace; }
+
+h1, h2, h3 { font-family: 'Orbitron', monospace; color: var(--blanco); letter-spacing: 0.04em; }
+
+/* ======== NAV ======== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(3,7,30,0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0,180,216,0.2);
+  padding: 14px 0;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Orbitron', monospace; font-size: 1.1rem;
+  color: var(--cian-brillante); letter-spacing: 0.1em;
+  text-shadow: 0 0 20px rgba(72,202,228,0.7);
+}
+.nav-links { display: flex; gap: 24px; list-style: none; }
+.nav-links a {
+  color: var(--texto); font-size: 0.82rem; text-decoration: none;
+  font-family: 'Orbitron', monospace; letter-spacing: 0.06em;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--cian-brillante); }
+
+/* ======== HERO ======== */
+#hero {
+  min-height: 100vh; position: relative;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 100px 24px 60px;
+  overflow: hidden;
+}
+
+.hero-tag {
+  display: inline-block;
+  background: rgba(0,180,216,0.12);
+  border: 1px solid rgba(0,180,216,0.4);
+  color: var(--cian);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem; letter-spacing: 0.15em;
+  padding: 6px 18px; border-radius: 30px;
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: clamp(3rem, 9vw, 7rem);
+  font-weight: 900; text-align: center;
+  line-height: 1.0;
+  background: linear-gradient(135deg, #ffffff 0%, var(--cian-brillante) 40%, #90e0ef 70%, var(--violeta-claro) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 40px rgba(72,202,228,0.4));
+}
+
+.hero-subtitle {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.85rem, 2vw, 1.2rem);
+  color: var(--cian); text-align: center;
+  letter-spacing: 0.08em; margin-bottom: 24px;
+  opacity: 0.85;
+}
+
+.hero-desc {
+  max-width: 680px; text-align: center;
+  font-size: 1.05rem; line-height: 1.8;
+  color: var(--texto); margin-bottom: 44px;
+}
+
+/* Neptune Hero Visual */
+.neptuno-wrapper {
+  position: relative; width: 320px; height: 320px;
+  margin: 0 auto 50px;
+}
+
+.neptuno-glow {
+  position: absolute; inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,119,182,0.5) 0%, rgba(72,202,228,0.15) 40%, transparent 70%);
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%,100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+.neptuno-planeta {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 30% 35%, rgba(255,255,255,0.25) 0%, transparent 40%),
+    radial-gradient(circle at 60% 40%, #0077b6 0%, #023e8a 30%, #03045e 60%, #020813 100%);
+  box-shadow:
+    0 0 60px rgba(0,119,182,0.6),
+    0 0 120px rgba(0,180,216,0.2),
+    inset -30px -20px 60px rgba(2,4,19,0.8);
+  animation: rotarPlaneta 20s linear infinite;
+  overflow: hidden;
+}
+
+.neptuno-planeta::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    repeating-linear-gradient(
+      170deg,
+      transparent 0%,
+      rgba(72,202,228,0.06) 8%,
+      transparent 12%,
+      rgba(0,119,182,0.08) 20%,
+      transparent 25%
+    );
+  animation: bandas 8s linear infinite;
+}
+
+.neptuno-planeta::after {
+  content: '';
+  position: absolute;
+  width: 80px; height: 30px;
+  background: rgba(200,230,255,0.18);
+  border-radius: 50%;
+  top: 42%; left: 50%;
+  transform: translate(-50%,-50%);
+  filter: blur(8px);
+  animation: tormenta 5s ease-in-out infinite;
+}
+
+@keyframes rotarPlaneta { from{filter:hue-rotate(0deg)} to{filter:hue-rotate(10deg)} }
+@keyframes bandas { from{background-position:0 0} to{background-position:0 200px} }
+@keyframes tormenta { 0%,100%{opacity:0.4;transform:translate(-50%,-50%) scale(1)} 50%{opacity:0.9;transform:translate(-50%,-50%) scale(1.3)} }
+
+/* Anillo de Neptuno */
+.neptuno-anillo {
+  position: absolute;
+  width: 480px; height: 480px;
+  border-radius: 50%;
+  border: 2px solid rgba(72,202,228,0.15);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) rotateX(72deg);
+  pointer-events: none;
+}
+.neptuno-anillo:nth-child(2) { width: 520px; height: 520px; border-color: rgba(0,180,216,0.08); border-width: 1px; }
+
+/* Lunas */
+.luna {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e2e8f0, #94a3b8);
+  top: 50%; left: 50%;
+  transform-origin: 0 0;
+}
+.luna-triton {
+  width: 18px; height: 18px;
+  margin: -9px 0 0 -9px;
+  animation: orbitLuna 6s linear infinite;
+  box-shadow: 0 0 8px rgba(148,163,184,0.5);
+}
+.luna-proteo {
+  width: 10px; height: 10px;
+  margin: -5px 0 0 -5px;
+  animation: orbitLuna2 3.5s linear infinite;
+  background: radial-gradient(circle at 35% 35%, #cbd5e1, #64748b);
+}
+
+@keyframes orbitLuna {
+  from { transform: rotate(0deg) translateX(190px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(190px) rotate(-360deg); }
+}
+@keyframes orbitLuna2 {
+  from { transform: rotate(180deg) translateX(140px) rotate(-180deg); }
+  to { transform: rotate(540deg) translateX(140px) rotate(-540deg); }
+}
+
+/* Botón principal */
+.btn-hero {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: linear-gradient(135deg, var(--violeta) 0%, var(--azul-electrico) 60%, rgba(0,180,216,0.3) 100%);
+  color: var(--blanco);
+  border: 1px solid var(--cian);
+  padding: 16px 44px;
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem; font-weight: 700;
+  letter-spacing: 0.08em;
+  border-radius: 50px; cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 30px rgba(0,180,216,0.3), 0 8px 24px rgba(0,0,0,0.5);
+}
+.btn-hero:hover {
+  box-shadow: 0 0 50px rgba(0,180,216,0.6), 0 12px 32px rgba(0,0,0,0.6);
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, var(--violeta-claro) 0%, var(--violeta) 40%, var(--azul-electrico) 100%);
+}
+.btn-hero svg { transition: transform 0.3s; }
+.btn-hero:hover svg { transform: translateX(4px); }
+
+/* Quick cards */
+.quick-cards {
+  display: flex; flex-wrap: wrap; gap: 12px;
+  justify-content: center; margin-top: 60px;
+}
+.qcard {
+  background: rgba(6,14,38,0.7);
+  border: 1px solid rgba(0,180,216,0.25);
+  border-radius: 12px; padding: 16px 22px;
+  display: flex; align-items: center; gap: 12px;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s;
+  max-width: 220px;
+}
+.qcard:hover { border-color: var(--cian); transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,180,216,0.15); }
+.qcard-icon { font-size: 1.8rem; }
+.qcard-text { font-size: 0.82rem; color: var(--texto); line-height: 1.4; }
+.qcard-text strong { color: var(--cian-brillante); display: block; font-size: 0.88rem; margin-bottom: 2px; }
+
+/* ======== SECCIONES ======== */
+section { position: relative; z-index: 2; padding: 80px 0; }
+
+.section-header {
+  text-align: center; margin-bottom: 60px;
+}
+.section-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem; letter-spacing: 0.2em;
+  color: var(--cian); text-transform: uppercase;
+  margin-bottom: 16px;
+  display: block;
+}
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 30%, var(--cian-brillante) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.section-desc { font-size: 1rem; color: var(--texto); max-width: 640px; margin: 0 auto; line-height: 1.8; }
+
+/* Divider */
+.divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,180,216,0.4), transparent);
+  margin: 10px 0;
+}
+
+/* ======== TARJETA ======== */
+.tarjeta {
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
+  border-radius: 18px; padding: 32px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.06);
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.tarjeta:hover { border-color: rgba(0,180,216,0.6); box-shadow: 0 12px 40px rgba(0,180,216,0.12); }
+
+/* ======== PANEL DATOS ======== */
+#datos { background: linear-gradient(180deg, transparent, rgba(0,31,84,0.15), transparent); }
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.dato-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px; padding: 28px 24px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.dato-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--violeta), var(--cian), var(--violeta));
+}
+.dato-card:hover { transform: translateY(-6px); border-color: var(--cian); box-shadow: 0 16px 32px rgba(0,180,216,0.15); }
+
+.dato-valor {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.9rem; font-weight: 900;
+  color: var(--cian-brillante);
+  text-shadow: 0 0 20px rgba(72,202,228,0.5);
+  margin-bottom: 6px;
+  display: block;
+}
+.dato-unidad { font-size: 0.8rem; color: var(--dorado); letter-spacing: 0.1em; }
+.dato-label { font-size: 0.88rem; color: var(--texto); margin-top: 8px; }
+.dato-icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+
+/* ======== ATMÓSFERA ======== */
+#atmosfera { }
+
+.atm-container { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+
+@media(max-width:768px) { .atm-container { grid-template-columns: 1fr; } }
+
+.atm-capas { }
+.capa-item {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 16px 0; border-bottom: 1px solid rgba(0,180,216,0.1);
+}
+.capa-item:last-child { border-bottom: none; }
+.capa-color {
+  width: 6px; min-height: 60px; border-radius: 3px;
+  flex-shrink: 0; margin-top: 4px;
+}
+.capa-info h4 { font-family: 'Orbitron', monospace; font-size: 0.88rem; color: var(--blanco); margin-bottom: 4px; }
+.capa-info p { font-size: 0.85rem; color: var(--texto); line-height: 1.6; }
+.capa-badge {
+  display: inline-block; background: rgba(0,180,216,0.12);
+  border: 1px solid rgba(0,180,216,0.3); color: var(--cian);
+  font-size: 0.72rem; padding: 2px 10px; border-radius: 20px;
+  margin-top: 6px; font-family: 'Orbitron', monospace;
+}
+
+/* Velocímetro de vientos */
+.viento-viz {
+  text-align: center; padding: 24px;
+}
+.viento-titulo { font-family: 'Orbitron', monospace; font-size: 0.8rem; color: var(--cian); letter-spacing: 0.1em; margin-bottom: 20px; }
+#velocimetro { display: block; margin: 0 auto; }
+
+.viento-comparativa {
+  display: flex; flex-direction: column; gap: 10px; margin-top: 20px;
+}
+.viento-barra-wrap { }
+.viento-barra-label {
+  display: flex; justify-content: space-between;
+  font-size: 0.8rem; color: var(--texto); margin-bottom: 4px;
+}
+.viento-barra-bg { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+.viento-barra-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 1.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* ======== SIMULADOR DIAMANTES ======== */
+#diamantes { background: linear-gradient(180deg, transparent, rgba(58,12,163,0.08), transparent); }
+
+.sim-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: start; }
+@media(max-width:900px) { .sim-layout { grid-template-columns: 1fr; } }
+
+.sim-canvas-wrap {
+  position: relative;
+  background: radial-gradient(circle at 50% 30%, rgba(0,31,84,0.8), rgba(2,4,19,0.95));
+  border: 1px solid var(--border-glow);
+  border-radius: 20px; overflow: hidden;
+  padding: 20px;
+}
+.sim-canvas-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.sim-canvas-title { font-family: 'Orbitron', monospace; font-size: 0.78rem; color: var(--cian); letter-spacing: 0.1em; }
+.sim-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; color: var(--dorado);
+  font-family: 'Orbitron', monospace;
+}
+.sim-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--dorado);
+  animation: blink 1.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+#canvas-diamantes {
+  display: block; border-radius: 14px;
+  background: radial-gradient(circle at 50% 20%, #001529, #03045e 40%, #020813 100%);
+  width: 100%; height: 360px;
+  cursor: crosshair;
+}
+
+.sim-controls { margin-top: 20px; }
+.ctrl-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+
+.btn-ctrl {
+  background: rgba(58,12,163,0.3);
+  border: 1px solid rgba(0,180,216,0.35);
+  color: var(--plateado);
+  padding: 10px 20px;
+  font-family: 'Orbitron', monospace; font-size: 0.76rem;
+  border-radius: 8px; cursor: pointer;
+  transition: all 0.25s; letter-spacing: 0.06em;
+}
+.btn-ctrl:hover, .btn-ctrl.activo {
+  background: rgba(0,180,216,0.2); border-color: var(--cian);
+  color: var(--cian); box-shadow: 0 0 16px rgba(0,180,216,0.2);
+}
+.btn-ctrl.danger { border-color: rgba(247,127,0,0.4); color: rgba(247,127,0,0.8); }
+.btn-ctrl.danger:hover { background: rgba(247,127,0,0.15); border-color: var(--naranja); color: var(--naranja); }
+
+.slider-wrap { margin-bottom: 14px; }
+.slider-label {
+  display: flex; justify-content: space-between;
+  font-size: 0.8rem; color: var(--texto); margin-bottom: 6px;
+}
+.slider-label span { color: var(--cian-brillante); font-family: 'Orbitron', monospace; }
+input[type=range] {
+  width: 100%; -webkit-appearance: none;
+  height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, var(--cian), var(--violeta));
+  outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--cian-brillante);
+  box-shadow: 0 0 10px rgba(72,202,228,0.6);
+  cursor: pointer;
+}
+
+/* Panel derecho del simulador */
+.sim-info { display: flex; flex-direction: column; gap: 20px; }
+
+.info-paso {
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
+  border-radius: 14px; padding: 20px 22px;
+  backdrop-filter: blur(12px);
+}
+.paso-num {
+  font-family: 'Orbitron', monospace; font-size: 0.68rem;
+  color: var(--dorado); letter-spacing: 0.15em; margin-bottom: 8px;
+}
+.paso-titulo { font-family: 'Orbitron', monospace; font-size: 0.92rem; color: var(--blanco); margin-bottom: 8px; }
+.paso-desc { font-size: 0.85rem; color: var(--texto); line-height: 1.6; }
+
+.hipotesis-box {
+  background: linear-gradient(135deg, rgba(58,12,163,0.25), rgba(0,31,84,0.4));
+  border: 1px solid rgba(114,9,183,0.4);
+  border-radius: 14px; padding: 22px;
+}
+.hipotesis-icon { font-size: 2rem; margin-bottom: 10px; }
+.hipotesis-titulo { font-family: 'Orbitron', monospace; font-size: 0.85rem; color: var(--violeta-claro); margin-bottom: 10px; letter-spacing: 0.06em; }
+.hipotesis-texto { font-size: 0.85rem; color: var(--texto); line-height: 1.7; }
+.hipotesis-fuente {
+  margin-top: 10px; font-size: 0.78rem;
+  color: rgba(252,191,73,0.7); font-style: italic;
+}
+
+/* Stats en tiempo real */
+.stats-realtime {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.stat-rt {
+  background: rgba(0,180,216,0.06);
+  border: 1px solid rgba(0,180,216,0.15);
+  border-radius: 10px; padding: 12px;
+  text-align: center;
+}
+.stat-rt-val { font-family: 'Orbitron', monospace; font-size: 1.2rem; color: var(--cian-brillante); }
+.stat-rt-label { font-size: 0.72rem; color: var(--texto); margin-top: 3px; }
+
+/* ======== EXPLICACIÓN PASO A PASO ======== */
+#explicacion { }
+
+.timeline { position: relative; padding-left: 40px; }
+.timeline::before {
+  content: '';
+  position: absolute; left: 14px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(180deg, var(--cian), var(--violeta), transparent);
+}
+.tl-item {
+  position: relative; margin-bottom: 40px;
+  opacity: 0; transform: translateX(-20px);
+  transition: all 0.6s ease;
+}
+.tl-item.visible { opacity: 1; transform: translateX(0); }
+
+.tl-dot {
+  position: absolute; left: -33px; top: 6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--cian); border: 3px solid var(--negro);
+  box-shadow: 0 0 12px rgba(0,180,216,0.6);
+}
+.tl-num { font-family: 'Orbitron', monospace; font-size: 0.68rem; color: var(--cian); letter-spacing: 0.15em; margin-bottom: 6px; }
+.tl-titulo { font-family: 'Orbitron', monospace; font-size: 1.05rem; color: var(--blanco); margin-bottom: 10px; }
+.tl-texto { font-size: 0.92rem; color: var(--texto); line-height: 1.75; }
+.tl-tag {
+  display: inline-block; margin-top: 10px;
+  padding: 3px 12px; border-radius: 20px;
+  font-size: 0.72rem; font-family: 'Orbitron', monospace;
+}
+.tl-tag.ciencia { background: rgba(0,180,216,0.15); color: var(--cian); border: 1px solid rgba(0,180,216,0.3); }
+.tl-tag.hipotesis { background: rgba(114,9,183,0.15); color: #c77dff; border: 1px solid rgba(114,9,183,0.3); }
+
+/* ======== QUIZ ======== */
+#quiz { background: linear-gradient(180deg, transparent, rgba(0,31,84,0.1), transparent); }
+
+.quiz-container { max-width: 780px; margin: 0 auto; }
+
+.quiz-progreso {
+  display: flex; gap: 8px; margin-bottom: 32px;
+  justify-content: center;
+}
+.quiz-paso {
+  width: 36px; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.1);
+  transition: background 0.4s;
+}
+.quiz-paso.activo { background: var(--cian); box-shadow: 0 0 8px rgba(0,180,216,0.5); }
+.quiz-paso.correcto { background: #00b894; }
+.quiz-paso.incorrecto { background: #ff6b6b; }
+
+.quiz-pregunta {
+  background: var(--card-bg);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px; padding: 36px;
+  backdrop-filter: blur(14px);
+  min-height: 300px;
+}
+
+.q-numero { font-family: 'Orbitron', monospace; font-size: 0.7rem; color: var(--cian); letter-spacing: 0.15em; margin-bottom: 16px; }
+.q-texto { font-size: 1.1rem; color: var(--blanco); margin-bottom: 28px; line-height: 1.6; font-weight: 500; }
+.q-opciones { display: flex; flex-direction: column; gap: 12px; }
+
+.q-opcion {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 16px 20px;
+  cursor: pointer; font-size: 0.95rem; color: var(--plateado);
+  transition: all 0.25s; text-align: left;
+}
+.q-opcion:hover { background: rgba(0,180,216,0.1); border-color: rgba(0,180,216,0.4); color: var(--blanco); }
+.q-opcion.correcto { background: rgba(0,184,148,0.2); border-color: #00b894; color: #55efc4; }
+.q-opcion.incorrecto { background: rgba(255,107,107,0.2); border-color: #ff6b6b; color: #ff6b6b; }
+
+.q-feedback {
+  margin-top: 20px; padding: 16px 20px;
+  border-radius: 10px; font-size: 0.9rem;
+  display: none; line-height: 1.6;
+}
+.q-feedback.mostrar { display: block; }
+.q-feedback.bien { background: rgba(0,184,148,0.15); border: 1px solid rgba(0,184,148,0.3); color: #55efc4; }
+.q-feedback.mal { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.3); color: #fab1a0; }
+
+.q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+.q-score { font-family: 'Orbitron', monospace; font-size: 0.8rem; color: var(--dorado); }
+
+.quiz-resultado {
+  text-align: center; padding: 40px 20px;
+  display: none;
+}
+.quiz-resultado.mostrar { display: block; }
+.resultado-emoji { font-size: 5rem; margin-bottom: 20px; }
+.resultado-titulo { font-family: 'Orbitron', monospace; font-size: 1.8rem; color: var(--blanco); margin-bottom: 12px; }
+.resultado-puntaje { font-family: 'Orbitron', monospace; font-size: 3rem; color: var(--cian-brillante); margin-bottom: 16px; }
+.resultado-desc { color: var(--texto); line-height: 1.7; margin-bottom: 28px; }
+
+/* ======== CRÉDITOS ======== */
+#creditos { padding-bottom: 80px; }
+.creditos-box {
+  max-width: 780px; margin: 0 auto;
+  text-align: center;
+}
+.creditos-titulo { font-family: 'Orbitron', monospace; font-size: 0.75rem; color: var(--cian); letter-spacing: 0.2em; margin-bottom: 16px; }
+.nota-cientifica {
+  background: linear-gradient(135deg, rgba(58,12,163,0.2), rgba(0,31,84,0.3));
+  border: 1px solid rgba(114,9,183,0.3);
+  border-radius: 16px; padding: 28px 32px;
+  margin-bottom: 28px; text-align: left;
+}
+.nota-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.nota-header svg { flex-shrink: 0; }
+.nota-header h3 { font-family: 'Orbitron', monospace; font-size: 0.92rem; color: var(--violeta-claro); }
+.nota-body { font-size: 0.88rem; color: var(--texto); line-height: 1.75; }
+.nota-body strong { color: var(--cian-brillante); }
+.creditos-linea { font-size: 0.82rem; color: rgba(168,198,223,0.5); margin-bottom: 6px; }
+
+/* ======== FOOTER ======== */
+footer {
+  text-align: center; padding: 28px 24px;
+  border-top: 1px solid rgba(0,180,216,0.15);
+  font-size: 0.8rem; color: rgba(168,198,223,0.45);
+  font-family: 'Orbitron', monospace; letter-spacing: 0.06em;
+  position: relative; z-index: 2;
+}
+
+/* ======== SCROLL REVEAL ======== */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: all 0.7s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ======== MEDIA QUERIES ======== */
+@media(max-width:600px) {
+  .nav-links { display: none; }
+  .neptuno-wrapper { width: 240px; height: 240px; }
+  .neptuno-anillo { width: 360px; height: 360px; }
+  .neptuno-anillo:nth-child(2) { width: 390px; height: 390px; }
+  @keyframes orbitLuna {
+    from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+  }
+  @keyframes orbitLuna2 {
+    from { transform: rotate(180deg) translateX(105px) rotate(-180deg); }
+    to { transform: rotate(540deg) translateX(105px) rotate(-540deg); }
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- CANVAS FONDO ESTRELLAS -->
+<canvas id="starfield"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">◈ NEPTUNO EXPLORER</div>
+    <ul class="nav-links">
+      <li><a href="#datos">DATOS</a></li>
+      <li><a href="#atmosfera">ATMÓSFERA</a></li>
+      <li><a href="#diamantes">DIAMANTES</a></li>
+      <li><a href="#explicacion">PASOS</a></li>
+      <li><a href="#quiz">QUIZ</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="hero">
+  <div class="container" style="display:flex;flex-direction:column;align-items:center;text-align:center;">
+    <div class="hero-tag">◦ OCTAVO PLANETA DEL SISTEMA SOLAR ◦</div>
+    <h1 class="hero-title">NEPTUNO<br>EXPLORER</h1>
+    <p class="hero-subtitle">Viaje interactivo al gigante azul</p>
+    <p class="hero-desc">Explora Neptuno, el planeta más lejano del Sistema Solar, descubre su atmósfera extrema y observa una recreación animada de cómo podrían formarse diamantes en sus capas profundas.</p>
+
+    <div class="neptuno-wrapper">
+      <div class="neptuno-glow"></div>
+      <div class="neptuno-anillo"></div>
+      <div class="neptuno-anillo"></div>
+      <div class="neptuno-planeta"></div>
+      <div class="luna luna-triton" title="Tritón"></div>
+      <div class="luna luna-proteo" title="Proteo"></div>
+    </div>
+
+    <a href="#datos" class="btn-hero">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 7l5 5-5 5M6 12h12"/></svg>
+      INICIAR EXPLORACIÓN
+    </a>
+
+    <div class="quick-cards">
+      <div class="qcard"><span class="qcard-icon">🌐</span><div class="qcard-text"><strong>Posición Nº 8</strong>El más lejano del Sistema Solar</div></div>
+      <div class="qcard"><span class="qcard-icon">🧊</span><div class="qcard-text"><strong>Gigante helado</strong>Mezcla de agua, amoniaco y metano</div></div>
+      <div class="qcard"><span class="qcard-icon">💎</span><div class="qcard-text"><strong>Lluvia de diamantes</strong>Hipótesis apoyada por experimentos</div></div>
+      <div class="qcard"><span class="qcard-icon">🌀</span><div class="qcard-text"><strong>Vientos de 2.100 km/h</strong>Los más rápidos del Sistema Solar</div></div>
+      <div class="qcard"><span class="qcard-icon">🔵</span><div class="qcard-text"><strong>Color azul intenso</strong>Por el metano en su atmósfera</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DATOS CIENTÍFICOS ===================== -->
+<section id="datos">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">◦ PANEL CIENTÍFICO ◦</span>
+      <h2 class="section-title">Datos del Gigante Azul</h2>
+      <p class="section-desc">Neptuno esconde números impresionantes que desafían nuestra comprensión del Sistema Solar.</p>
+    </div>
+    <div class="datos-grid">
+      <div class="dato-card reveal"><span class="dato-icon">📏</span><span class="dato-valor">49.244</span><span class="dato-unidad">KM DE DIÁMETRO</span><p class="dato-label">Cuatro veces más grande que la Tierra</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">⚖️</span><span class="dato-valor">17.1×</span><span class="dato-unidad">MASA TERRESTRE</span><p class="dato-label">La masa más alta entre los gigantes helados</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">🕐</span><span class="dato-valor">164.8</span><span class="dato-unidad">AÑOS TERRESTRES / ÓRBITA</span><p class="dato-label">Desde su descubrimiento solo ha dado ~1 vuelta</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">🌡️</span><span class="dato-valor">−201 °C</span><span class="dato-unidad">TEMPERATURA SUPERFICIAL</span><p class="dato-label">Una de las atmósferas más frías del sistema</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">💨</span><span class="dato-valor">2.100</span><span class="dato-unidad">KM/H VELOCIDAD DE VIENTOS</span><p class="dato-label">Los vientos más rápidos del Sistema Solar</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">🌑</span><span class="dato-valor">16</span><span class="dato-unidad">LUNAS CONOCIDAS</span><p class="dato-label">Tritón orbita en sentido retrógrado</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">☀️</span><span class="dato-valor">30 UA</span><span class="dato-unidad">DISTANCIA AL SOL</span><p class="dato-label">La luz del Sol tarda ~4 horas en llegar</p></div>
+      <div class="dato-card reveal"><span class="dato-icon">🔄</span><span class="dato-valor">16 h</span><span class="dato-unidad">DÍA EN NEPTUNO</span><p class="dato-label">Rotación más rápida que la Tierra</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ATMÓSFERA ===================== -->
+<section id="atmosfera">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">◦ CAPAS ATMOSFÉRICAS ◦</span>
+      <h2 class="section-title">Atmósfera de Neptuno</h2>
+      <p class="section-desc">Una envoltura gaseosa y profunda con capas que van desde el frío extremo hasta presiones aplastantes.</p>
+    </div>
+    <div class="atm-container">
+      <div class="tarjeta reveal atm-capas">
+        <h3 style="font-size:1rem;margin-bottom:20px;">Estructura en capas</h3>
+        <div class="capa-item">
+          <div class="capa-color" style="background:linear-gradient(180deg,#90e0ef,#48cae4);"></div>
+          <div class="capa-info">
+            <h4>Troposfera exterior</h4>
+            <p>Capa más externa con nubes de metano congelado a −218 °C. El metano absorbe la luz roja y refleja el azul, dándole su característico color.</p>
+            <span class="capa-badge">−218 °C · METANO</span>
+          </div>
+        </div>
+        <div class="capa-item">
+          <div class="capa-color" style="background:linear-gradient(180deg,#0096c7,#023e8a);"></div>
+          <div class="capa-info">
+            <h4>Troposfera media</h4>
+            <p>Zona de violentas tormentas y el famoso "Gran Punto Oscuro", una tormenta del tamaño de la Tierra con vientos ciclónicos.</p>
+            <span class="capa-badge">TORMENTAS GIGANTES</span>
+          </div>
+        </div>
+        <div class="capa-item">
+          <div class="capa-color" style="background:linear-gradient(180deg,#03045e,#240046);"></div>
+          <div class="capa-info">
+            <h4>Manto interior (agua-amoniaco)</h4>
+            <p>A miles de kilómetros de profundidad, el agua y el amoniaco forman un fluido supercaliente bajo presión masiva. Aquí comienzan las condiciones para los fenómenos más extremos.</p>
+            <span class="capa-badge">FLUIDO SUPERCRÍTICO</span>
+          </div>
+        </div>
+        <div class="capa-item">
+          <div class="capa-color" style="background:linear-gradient(180deg,#7209b7,#f72585);"></div>
+          <div class="capa-info">
+            <h4>Capa de carbono comprimido</h4>
+            <p>En las profundidades más extremas, el carbono del metano descompuesto es sometido a temperaturas de miles de grados y presiones millones de veces mayores que en la Tierra. Aquí entra la hipótesis de los diamantes.</p>
+            <span class="capa-badge">~7.000 °C · MILLONES atm</span>
+          </div>
+        </div>
+        <div class="capa-item">
+          <div class="capa-color" style="background:linear-gradient(180deg,#ff0a54,#ff6d00);"></div>
+          <div class="capa-info">
+            <h4>Núcleo rocoso</h4>
+            <p>Se cree que Neptuno tiene un núcleo de roca y hielo del tamaño de la Tierra, a temperaturas extremas de hasta 7.000 °C.</p>
+            <span class="capa-badge">NÚCLEO SÓLIDO</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tarjeta reveal viento-viz">
+        <p class="viento-titulo">◦ VELOCÍMETRO DE VIENTOS ◦</p>
+        <canvas id="velocimetro" width="260" height="160"></canvas>
+        <div style="margin-top:8px;">
+          <span style="font-family:'Orbitron',monospace;font-size:2.2rem;color:#48cae4;" id="viento-display">2.100</span>
+          <span style="font-size:0.8rem;color:#fcbf49;"> km/h</span>
+        </div>
+        <p style="font-size:0.78rem;color:var(--texto);margin:8px 0 20px;">Velocidad máxima registrada</p>
+        <div class="viento-comparativa">
+          <div class="viento-barra-wrap">
+            <div class="viento-barra-label"><span>Tierra (huracán cat. 5)</span><span style="color:var(--dorado)">280 km/h</span></div>
+            <div class="viento-barra-bg"><div class="viento-barra-fill" style="width:0%;background:linear-gradient(90deg,#00b894,#00cec9);" data-width="13"></div></div>
+          </div>
+          <div class="viento-barra-wrap">
+            <div class="viento-barra-label"><span>Júpiter</span><span style="color:var(--dorado)">530 km/h</span></div>
+            <div class="viento-barra-bg"><div class="viento-barra-fill" style="width:0%;background:linear-gradient(90deg,#fdcb6e,#e17055);" data-width="25"></div></div>
+          </div>
+          <div class="viento-barra-wrap">
+            <div class="viento-barra-label"><span>Saturno</span><span style="color:var(--dorado)">1.800 km/h</span></div>
+            <div class="viento-barra-bg"><div class="viento-barra-fill" style="width:0%;background:linear-gradient(90deg,#a29bfe,#6c5ce7);" data-width="86"></div></div>
+          </div>
+          <div class="viento-barra-wrap">
+            <div class="viento-barra-label"><span>🔵 <strong>Neptuno</strong></span><span style="color:var(--cian-brillante);font-weight:700">2.100 km/h</span></div>
+            <div class="viento-barra-bg"><div class="viento-barra-fill" style="width:0%;background:linear-gradient(90deg,#00b4d8,#48cae4);" data-width="100"></div></div>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--texto);margin-top:16px;line-height:1.6;">Los vientos de Neptuno superan la velocidad del sonido y son los más rápidos registrados en cualquier planeta del Sistema Solar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SIMULADOR DIAMANTES ===================== -->
+<section id="diamantes">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">◦ SIMULADOR INTERACTIVO ◦</span>
+      <h2 class="section-title">¿Lluvia de diamantes?</h2>
+      <p class="section-desc">Simula las condiciones extremas del interior de Neptuno y observa cómo el carbono podría cristalizar en forma de diamante.</p>
+    </div>
+
+    <div class="sim-layout">
+      <div class="sim-canvas-wrap reveal">
+        <div class="sim-canvas-header">
+          <span class="sim-canvas-title">◦ SIMULACIÓN DE CAPAS PROFUNDAS ◦</span>
+          <div class="sim-status"><div class="sim-dot"></div><span id="estado-sim">EN ESPERA</span></div>
+        </div>
+
+        <canvas id="canvas-diamantes"></canvas>
+
+        <div class="sim-controls">
+          <div class="slider-wrap">
+            <div class="slider-label">Presión interna <span id="val-presion">1.000.000 atm</span></div>
+            <input type="range" id="slider-presion" min="1" max="100" value="50">
+          </div>
+          <div class="slider-wrap">
+            <div class="slider-label">Temperatura <span id="val-temp">3.500 °C</span></div>
+            <input type="range" id="slider-temp" min="1" max="100" value="50">
+          </div>
+          <div class="ctrl-row">
+            <button class="btn-ctrl" id="btn-iniciar" onclick="iniciarSimulacion()">▶ INICIAR</button>
+            <button class="btn-ctrl" id="btn-pause" onclick="pausarSimulacion()">⏸ PAUSAR</button>
+            <button class="btn-ctrl danger" onclick="resetearSimulacion()">↺ RESET</button>
+            <button class="btn-ctrl" id="btn-modo" onclick="cambiarModo()">⚡ MODO EXTREMO</button>
+          </div>
+        </div>
+
+        <div class="stats-realtime" style="margin-top:14px;">
+          <div class="stat-rt"><div class="stat-rt-val" id="stat-diamantes">0</div><div class="stat-rt-label">Diamantes formados</div></div>
+          <div class="stat-rt"><div class="stat-rt-val" id="stat-carbono">0</div><div class="stat-rt-label">Moléculas de carbono</div></div>
+          <div class="stat-rt"><div class="stat-rt-val" id="stat-profundidad">0 km</div><div class="stat-rt-label">Profundidad estimada</div></div>
+          <div class="stat-rt"><div class="stat-rt-val" id="stat-fase">Sólida</div><div class="stat-rt-label">Fase del diamante</div></div>
+        </div>
+      </div>
+
+      <div class="sim-info">
+        <div class="info-paso reveal">
+          <div class="paso-num">◦ PASO 01 / ORIGEN ◦</div>
+          <h3 class="paso-titulo">El metano como fuente</h3>
+          <p class="paso-desc">La atmósfera de Neptuno contiene un 2–4% de metano (CH₄). Bajo presiones extremas, las moléculas de metano se rompen, liberando carbono e hidrógeno.</p>
+        </div>
+        <div class="info-paso reveal">
+          <div class="paso-num">◦ PASO 02 / TRANSFORMACIÓN ◦</div>
+          <h3 class="paso-titulo">Compresión del carbono</h3>
+          <p class="paso-desc">El carbono liberado es sometido a presiones de millones de atmósferas y temperaturas de miles de grados. Esto crea las condiciones precisas para que el carbono adopte la estructura cristalina del diamante.</p>
+        </div>
+        <div class="info-paso reveal">
+          <div class="paso-num">◦ PASO 03 / DESCENSO ◦</div>
+          <h3 class="paso-titulo">Cristales que caen</h3>
+          <p class="paso-desc">Los cristales de diamante serían más densos que el fluido circundante y descenderían hacia el núcleo, formando una lluvia de sólidos brillantes a través del manto del planeta.</p>
+        </div>
+        <div class="hipotesis-box reveal">
+          <div class="hipotesis-icon">🔬</div>
+          <h3 class="hipotesis-titulo">⚠ NOTA CIENTÍFICA IMPORTANTE</h3>
+          <p class="hipotesis-texto">La "lluvia de diamantes" es una <strong>hipótesis científica</strong>, no un fenómeno observado directamente. Está respaldada por modelos matemáticos y experimentos con láser de alta potencia que recrean las condiciones de presión y temperatura equivalentes. En 2017, científicos del SLAC National Accelerator Laboratory publicaron resultados prometedores. Sin embargo, <strong>ninguna nave ha llegado al interior de Neptuno</strong> para confirmarlo directamente.</p>
+          <p class="hipotesis-fuente">— Fuente: Nature Astronomy, 2017 · SLAC / Helmholtz-Zentrum Dresden-Rossendorf</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EXPLICACIÓN PASO A PASO ===================== -->
+<section id="explicacion">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">◦ LÍNEA TEMPORAL ◦</span>
+      <h2 class="section-title">¿Cómo se formarían los diamantes?</h2>
+      <p class="section-desc">El proceso completo desde el metano en la atmósfera hasta la cristalización en las profundidades.</p>
+    </div>
+    <div class="timeline" style="max-width:780px;margin:0 auto;">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-num">◦ ETAPA 01 ◦</div>
+        <h3 class="tl-titulo">Metano en la atmósfera superior</h3>
+        <p class="tl-texto">El metano (CH₄) representa entre el 2 y el 4% de la atmósfera de Neptuno. Es el responsable del color azul vibrante del planeta: absorbe la luz roja del Sol y deja pasar el azul. Bajo condiciones normales, el metano es un gas, pero en Neptuno entra en zonas de presión creciente al descender.</p>
+        <span class="tl-tag ciencia">DATO CONFIRMADO</span>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--dorado);box-shadow:0 0 12px rgba(252,191,73,0.6);"></div>
+        <div class="tl-num">◦ ETAPA 02 ◦</div>
+        <h3 class="tl-titulo">Ruptura de moléculas de metano</h3>
+        <p class="tl-texto">A medida que el metano desciende hacia el interior del planeta, la temperatura y la presión aumentan dramáticamente. Modelos teóricos indican que en las capas internas, las moléculas de CH₄ se rompen: los enlaces carbono-hidrógeno se fracturan, liberando átomos de carbono e hidrógeno por separado.</p>
+        <span class="tl-tag hipotesis">MODELO TEÓRICO</span>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#c77dff;box-shadow:0 0 12px rgba(199,125,255,0.6);"></div>
+        <div class="tl-num">◦ ETAPA 03 ◦</div>
+        <h3 class="tl-titulo">Compresión extrema del carbono</h3>
+        <p class="tl-texto">El carbono libre es sometido a presiones equivalentes a millones de atmósferas terrestres y temperaturas de 2.000 a 7.000 °C. En la Tierra, el diamante se forma a 45–60 km de profundidad con presiones de ~50.000 atmósferas. En Neptuno las condiciones son miles de veces más extremas.</p>
+        <span class="tl-tag hipotesis">HIPÓTESIS RESPALDADA POR EXPERIMENTOS</span>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#90e0ef;box-shadow:0 0 12px rgba(144,224,239,0.6);"></div>
+        <div class="tl-num">◦ ETAPA 04 ◦</div>
+        <h3 class="tl-titulo">Cristalización en diamante</h3>
+        <p class="tl-texto">Bajo esas condiciones, el carbono adoptaría la estructura cristalina cúbica del diamante —la forma de carbono más estable a alta presión—. Los experimentos con láseres del National Ignition Facility y el European XFEL han logrado crear nanodiamantes en condiciones similares a las del interior de los planetas gigantes.</p>
+        <span class="tl-tag hipotesis">CONFIRMADO EN LABORATORIO (ESCALA REDUCIDA)</span>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--naranja);box-shadow:0 0 12px rgba(247,127,0,0.6);"></div>
+        <div class="tl-num">◦ ETAPA 05 ◦</div>
+        <h3 class="tl-titulo">Lluvia hacia el núcleo</h3>
+        <p class="tl-texto">Los cristales de diamante serían más densos que el fluido de agua-amoniaco que los rodea. Por efecto de la gravedad, descenderían lentamente hacia el núcleo del planeta, formando lo que los científicos llaman metafóricamente "lluvia de diamantes". Algunos modelos sugieren que Neptuno podría tener un océano de carbono líquido o incluso diamantes sólidos en su núcleo.</p>
+        <span class="tl-tag hipotesis">HIPÓTESIS TEÓRICA</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== QUIZ ===================== -->
+<section id="quiz">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">◦ EVALUACIÓN ◦</span>
+      <h2 class="section-title">Pon a prueba lo aprendido</h2>
+      <p class="section-desc">Responde estas preguntas sobre Neptuno y la hipótesis de los diamantes.</p>
+    </div>
+    <div class="quiz-container">
+      <div class="quiz-progreso" id="quiz-progreso"></div>
+      <div class="quiz-pregunta" id="quiz-box">
+        <div id="quiz-contenido"></div>
+      </div>
+      <div class="quiz-resultado" id="quiz-resultado">
+        <div class="resultado-emoji" id="res-emoji">🚀</div>
+        <h2 class="resultado-titulo" id="res-titulo"></h2>
+        <div class="resultado-puntaje" id="res-puntaje"></div>
+        <p class="resultado-desc" id="res-desc"></p>
+        <button class="btn-ctrl" style="font-size:0.9rem;padding:14px 28px;" onclick="reiniciarQuiz()">↺ REPETIR QUIZ</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CRÉDITOS ===================== -->
+<section id="creditos">
+  <div class="container">
+    <div class="creditos-box">
+      <div class="nota-cientifica reveal">
+        <div class="nota-header">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#c77dff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <h3>Nota científica y pedagógica</h3>
+        </div>
+        <p class="nota-body">
+          La <strong>"lluvia de diamantes"</strong> en Neptuno es una de las hipótesis más fascinantes de la ciencia planetaria moderna. Esta animación es una <strong>recreación artística y educativa</strong>, no una visualización de datos directos.<br><br>
+          Lo que sabemos con certeza: la atmósfera de Neptuno contiene metano, las condiciones internas son de presión y temperatura extremas, y experimentos de laboratorio como los realizados en el <strong>SLAC National Accelerator Laboratory (2017)</strong> y el <strong>European XFEL (2022)</strong> han logrado recrear nanodiamantes bajo condiciones similares a las esperadas en planetas helados gigantes.<br><br>
+          Lo que es hipótesis: el proceso exacto dentro del planeta, la cantidad de diamantes, su tamaño y si llegan al núcleo. <strong>Ninguna nave espacial ha penetrado el interior de Neptuno</strong>. Solo Voyager 2 sobrevoló el planeta en 1989 y nos dio la mayoría de los datos directos que tenemos.
+        </p>
+      </div>
+      <p class="creditos-linea">Neptuno Explorer · Simulador Educativo Interactivo</p>
+      <p class="creditos-linea">Diseñado para estudiantes de secundaria y bachillerato</p>
+      <p class="creditos-linea" style="margin-top:10px;">Referencias: NASA · ESA · Nature Astronomy · SLAC National Accelerator Laboratory · European XFEL</p>
+    </div>
+  </div>
+</section>
+
+<footer>◈ NEPTUNO EXPLORER · VIAJE AL GIGANTE AZUL · SIMULADOR EDUCATIVO ◈</footer>
+
+<script>
+// ========================
+// STARFIELD CANVAS
+// ========================
+(function() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], nebulas = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    for(let i = 0; i < 320; i++) {
+      stars.push({
+        x: Math.random()*W, y: Math.random()*H,
+        r: Math.random()*1.6 + 0.2,
+        a: Math.random(), da: (Math.random()*0.008 + 0.002) * (Math.random()<0.5?1:-1),
+        color: Math.random() < 0.15 ? '#90e0ef' : Math.random()<0.08 ? '#fcbf49' : '#ffffff'
+      });
+    }
+    nebulas = [];
+    for(let i = 0; i < 5; i++) {
+      nebulas.push({
+        x: Math.random()*W, y: Math.random()*H,
+        r: 150 + Math.random()*200,
+        color: Math.random()<0.5 ? 'rgba(0,31,84,' : 'rgba(58,12,163,',
+        a: 0.04 + Math.random()*0.06
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    // Nebulas
+    nebulas.forEach(n => {
+      const g = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+      g.addColorStop(0, n.color + n.a + ')');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+    });
+    // Stars
+    stars.forEach(s => {
+      s.a += s.da;
+      if(s.a > 1 || s.a < 0) s.da *= -1;
+      ctx.globalAlpha = Math.max(0.1, s.a);
+      ctx.fillStyle = s.color;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(); });
+  resize(); initStars(); draw();
+})();
+
+// ========================
+// VELOCÍMETRO
+// ========================
+(function() {
+  const canvas = document.getElementById('velocimetro');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  let angle = 0, targetAngle = 0, raf;
+
+  function drawGauge(a) {
+    ctx.clearRect(0,0,W,H);
+    const cx = W/2, cy = H*0.85, r = H*0.78;
+
+    // Track
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI, 0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 16; ctx.lineCap = 'round'; ctx.stroke();
+
+    // Fill
+    const grad = ctx.createLinearGradient(cx-r,cy,cx+r,cy);
+    grad.addColorStop(0,'#023e8a'); grad.addColorStop(0.5,'#00b4d8'); grad.addColorStop(1,'#48cae4');
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI, Math.PI + a * Math.PI);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 16; ctx.stroke();
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI, Math.PI + a * Math.PI);
+    ctx.strokeStyle = 'rgba(72,202,228,0.3)';
+    ctx.lineWidth = 26; ctx.stroke();
+
+    // Needle
+    const needleAngle = Math.PI + a * Math.PI;
+    const nx = cx + (r-10)*Math.cos(needleAngle);
+    const ny = cy + (r-10)*Math.sin(needleAngle);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(nx,ny);
+    ctx.strokeStyle = '#fcbf49'; ctx.lineWidth = 2.5; ctx.lineCap='round'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
+    ctx.fillStyle = '#fcbf49'; ctx.fill();
+
+    // Labels
+    ctx.fillStyle = 'rgba(168,198,223,0.6)';
+    ctx.font = '10px Orbitron, monospace';
+    ctx.textAlign='center';
+    ctx.fillText('0', cx-r+8, cy+14);
+    ctx.fillText('MAX', cx+r-8, cy+14);
+    ctx.fillText('km/h', cx, cy+20);
+  }
+
+  function animate() {
+    angle += (targetAngle - angle) * 0.04;
+    drawGauge(angle);
+    raf = requestAnimationFrame(animate);
+  }
+
+  // Animate in after 1s
+  setTimeout(() => { targetAngle = 1.0; }, 800);
+  animate();
+
+  // Trigger bars too
+  setTimeout(() => {
+    document.querySelectorAll('.viento-barra-fill').forEach(el => {
+      el.style.width = el.dataset.width + '%';
+    });
+  }, 900);
+})();
+
+// ========================
+// SIMULADOR DIAMANTES
+// ========================
+const sim = {
+  canvas: null, ctx: null,
+  particles: [], diamonds: [], sparks: [],
+  running: false, modo: 'normal',
+  presion: 50, temp: 50,
+  frameId: null,
+  stats: { diamantes: 0, carbono: 0 },
+  time: 0
+};
+
+function initSim() {
+  sim.canvas = document.getElementById('canvas-diamantes');
+  sim.ctx = sim.canvas.getContext('2d');
+  // Resize
+  function resizeSim() {
+    const wrap = sim.canvas.parentElement;
+    sim.canvas.width = sim.canvas.offsetWidth;
+    sim.canvas.height = sim.canvas.offsetHeight || 360;
+  }
+  resizeSim();
+  window.addEventListener('resize', resizeSim);
+
+  document.getElementById('slider-presion').addEventListener('input', function() {
+    sim.presion = +this.value;
+    const p = Math.round(sim.presion * 20000);
+    document.getElementById('val-presion').textContent = p.toLocaleString('es') + ' atm';
+    updateSimStats();
+  });
+  document.getElementById('slider-temp').addEventListener('input', function() {
+    sim.temp = +this.value;
+    const t = Math.round(sim.temp * 100);
+    document.getElementById('val-temp').textContent = t.toLocaleString('es') + ' °C';
+    updateSimStats();
+  });
+
+  drawSimIdle();
+}
+
+function updateSimStats() {
+  const p = sim.presion * 20000;
+  const t = sim.temp * 100;
+  document.getElementById('stat-profundidad').textContent = Math.round(sim.presion * 120) + ' km';
+  document.getElementById('stat-fase').textContent = sim.temp > 70 ? 'Líquida' : sim.temp > 40 ? 'Transición' : 'Sólida';
+}
+
+function drawSimIdle() {
+  const c = sim.canvas, ctx = sim.ctx;
+  if(!c || !ctx) return;
+  const W = c.width, H = c.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background gradient
+  const bg = ctx.createRadialGradient(W/2,H*0.3,0,W/2,H/2,H*0.8);
+  bg.addColorStop(0,'#001529'); bg.addColorStop(0.5,'#03045e'); bg.addColorStop(1,'#020813');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // Idle text
+  ctx.fillStyle = 'rgba(0,180,216,0.3)';
+  ctx.font = '13px Orbitron, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('PULSA "INICIAR" PARA ACTIVAR LA SIMULACIÓN', W/2, H/2);
+  ctx.font = '10px Orbitron, monospace';
+  ctx.fillStyle = 'rgba(168,198,223,0.2)';
+  ctx.fillText('Ajusta presión y temperatura con los controles', W/2, H/2+24);
+}
+
+function spawnParticles() {
+  const c = sim.canvas;
+  if(!c) return;
+  const W = c.width, H = c.height;
+  const rate = sim.modo === 'extremo' ? 4 : 2;
+  for(let i = 0; i < rate; i++) {
+    // Methane molecule (blue circle)
+    sim.particles.push({
+      x: Math.random()*W*0.9 + W*0.05,
+      y: -10,
+      vx: (Math.random()-0.5)*0.8,
+      vy: 0.6 + Math.random()*1.2 * (sim.presion/50),
+      r: 3 + Math.random()*2,
+      type: 'metano', life: 1, age: 0,
+      color: `hsl(${200+Math.random()*30},80%,${60+Math.random()*20}%)`
+    });
+    sim.stats.carbono++;
+    document.getElementById('stat-carbono').textContent = sim.stats.carbono;
+  }
+}
+
+function spawnDiamond(x, y) {
+  sim.diamonds.push({
+    x, y,
+    vx: (Math.random()-0.5)*0.5,
+    vy: 0.4 + Math.random()*0.8,
+    size: 4 + Math.random()*6 * (sim.presion/60),
+    rotation: Math.random()*Math.PI,
+    rotV: (Math.random()-0.5)*0.05,
+    life: 1, glow: 0, age: 0
+  });
+  sim.stats.diamantes++;
+  document.getElementById('stat-diamantes').textContent = sim.stats.diamantes;
+}
+
+function spawnSpark(x, y) {
+  for(let i=0;i<6;i++) {
+    const angle = Math.random()*Math.PI*2;
+    sim.sparks.push({
+      x,y,
+      vx: Math.cos(angle)*2*Math.random(),
+      vy: Math.sin(angle)*2*Math.random()-1,
+      life:1, r:1.5+Math.random()*2
+    });
+  }
+}
+
+function drawDiamond(ctx, x, y, size, rotation, alpha) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.globalAlpha = alpha;
+
+  // Outer diamond
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.lineTo(size*0.6, 0);
+  ctx.lineTo(0, size);
+  ctx.lineTo(-size*0.6, 0);
+  ctx.closePath();
+
+  const grad = ctx.createLinearGradient(-size,0,size,0);
+  grad.addColorStop(0,'#90e0ef');
+  grad.addColorStop(0.3,'#ffffff');
+  grad.addColorStop(0.6,'#48cae4');
+  grad.addColorStop(1,'#0077b6');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Facet
+  ctx.beginPath();
+  ctx.moveTo(0, -size*0.9);
+  ctx.lineTo(size*0.4, -size*0.1);
+  ctx.lineTo(0, size*0.1);
+  ctx.lineTo(-size*0.4,-size*0.1);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fill();
+
+  // Glow
+  const gGrad = ctx.createRadialGradient(0,0,0,0,0,size*2.5);
+  gGrad.addColorStop(0,'rgba(72,202,228,0.3)');
+  gGrad.addColorStop(1,'transparent');
+  ctx.fillStyle = gGrad;
+  ctx.beginPath(); ctx.arc(0,0,size*2.5,0,Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+function simLoop() {
+  if(!sim.running) return;
+  const c = sim.canvas, ctx = sim.ctx;
+  if(!c || !ctx) return;
+  const W = c.width, H = c.height;
+  sim.time++;
+
+  // Background
+  ctx.fillStyle = 'rgba(2,8,19,0.35)';
+  ctx.fillRect(0,0,W,H);
+
+  // Background radial
+  if(sim.time % 60 === 0) {
+    const bg = ctx.createRadialGradient(W/2,H*0.3,0,W/2,H/2,H);
+    const tRatio = sim.temp/100;
+    bg.addColorStop(0,`rgba(${Math.round(tRatio*30)},${Math.round(30+tRatio*20)},${Math.round(80+tRatio*50)},0.2)`);
+    bg.addColorStop(1,'transparent');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  }
+
+  // Spawn
+  if(sim.time % 8 === 0) spawnParticles();
+
+  // Pressure lines (horizontal shockwaves)
+  if(sim.time % 30 === 0) {
+    ctx.strokeStyle = `rgba(0,180,216,${0.05+sim.presion/2000})`;
+    ctx.lineWidth = 0.5;
+    for(let i=0;i<3;i++) {
+      const y = Math.random()*H;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    }
+  }
+
+  // Update + draw particles (carbon/methane)
+  for(let i = sim.particles.length-1; i>=0; i--) {
+    const p = sim.particles[i];
+    p.x += p.vx + Math.sin(sim.time*0.03 + i)*0.3;
+    p.y += p.vy;
+    p.age++;
+    p.life -= 0.008;
+
+    // Convert to diamond condition
+    const threshold = (sim.presion + sim.temp) / 3;
+    if(p.age > 60 && Math.random()*100 < threshold * 0.08 && p.type === 'metano') {
+      spawnSpark(p.x, p.y);
+      spawnDiamond(p.x, p.y);
+      sim.particles.splice(i,1);
+      continue;
+    }
+
+    if(p.life <= 0 || p.y > H+10) { sim.particles.splice(i,1); continue; }
+
+    // Draw methane molecule
+    ctx.save();
+    ctx.globalAlpha = Math.min(1,p.life * 2.5);
+    // Central C atom
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.color; ctx.fill();
+    // H bonds
+    for(let h=0;h<4;h++) {
+      const hAngle = (h/4)*Math.PI*2 + sim.time*0.01;
+      const hx = p.x + Math.cos(hAngle)*(p.r+3);
+      const hy = p.y + Math.sin(hAngle)*(p.r+3);
+      ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(hx,hy);
+      ctx.strokeStyle=`rgba(200,230,255,${p.life*0.5})`; ctx.lineWidth=0.8; ctx.stroke();
+      ctx.beginPath(); ctx.arc(hx,hy,1.2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,240,255,${p.life})`; ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Update + draw diamonds
+  for(let i = sim.diamonds.length-1; i>=0; i--) {
+    const d = sim.diamonds[i];
+    d.x += d.vx + Math.sin(sim.time*0.02+i)*0.15;
+    d.y += d.vy;
+    d.rotation += d.rotV;
+    d.age++;
+    d.glow = Math.sin(d.age*0.1)*0.3+0.7;
+
+    if(d.y > H + d.size*3) { sim.diamonds.splice(i,1); continue; }
+    drawDiamond(ctx, d.x, d.y, d.size, d.rotation, d.life * d.glow);
+  }
+
+  // Update + draw sparks
+  for(let i=sim.sparks.length-1;i>=0;i--) {
+    const s = sim.sparks[i];
+    s.x+=s.vx; s.y+=s.vy; s.life-=0.06; s.vy+=0.05;
+    if(s.life<=0){sim.sparks.splice(i,1);continue;}
+    ctx.save(); ctx.globalAlpha=s.life;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle='#fcbf49'; ctx.fill();
+    ctx.restore();
+  }
+
+  // HUD overlay
+  ctx.save();
+  ctx.font = '10px Orbitron, monospace';
+  ctx.fillStyle = 'rgba(0,180,216,0.5)';
+  ctx.textAlign = 'left';
+  ctx.fillText(`P: ${(sim.presion*20000).toLocaleString('es')} atm`, 12, H-30);
+  ctx.fillText(`T: ${(sim.temp*100).toLocaleString('es')} °C`, 12, H-16);
+  ctx.textAlign = 'right';
+  ctx.fillStyle='rgba(72,202,228,0.4)';
+  ctx.fillText('NEPTUNO · CAPA PROFUNDA', W-12, H-16);
+  ctx.restore();
+
+  sim.frameId = requestAnimationFrame(simLoop);
+}
+
+function iniciarSimulacion() {
+  if(sim.running) return;
+  sim.running = true;
+  document.getElementById('estado-sim').textContent = 'SIMULANDO...';
+  document.getElementById('btn-iniciar').classList.add('activo');
+  simLoop();
+}
+
+function pausarSimulacion() {
+  sim.running = !sim.running;
+  document.getElementById('estado-sim').textContent = sim.running ? 'SIMULANDO...' : 'PAUSADO';
+  if(sim.running) simLoop();
+}
+
+function resetearSimulacion() {
+  sim.running = false;
+  cancelAnimationFrame(sim.frameId);
+  sim.particles = []; sim.diamonds = []; sim.sparks = [];
+  sim.stats = {diamantes:0, carbono:0}; sim.time=0;
+  document.getElementById('estado-sim').textContent = 'EN ESPERA';
+  document.getElementById('btn-iniciar').classList.remove('activo');
+  document.getElementById('stat-diamantes').textContent = '0';
+  document.getElementById('stat-carbono').textContent = '0';
+  drawSimIdle();
+}
+
+function cambiarModo() {
+  sim.modo = sim.modo === 'normal' ? 'extremo' : 'normal';
+  document.getElementById('btn-modo').textContent = sim.modo === 'extremo' ? '◎ MODO NORMAL' : '⚡ MODO EXTREMO';
+  document.getElementById('btn-modo').classList.toggle('activo', sim.modo==='extremo');
+  if(sim.modo === 'extremo') {
+    document.getElementById('slider-presion').value = 95;
+    document.getElementById('slider-temp').value = 95;
+    sim.presion = 95; sim.temp = 95;
+    document.getElementById('val-presion').textContent = '1.900.000 atm';
+    document.getElementById('val-temp').textContent = '9.500 °C';
+    updateSimStats();
+  }
+}
+
+// ========================
+// QUIZ
+// ========================
+const preguntas = [
+  {
+    q: "¿En qué posición está Neptuno en el Sistema Solar, contando desde el Sol?",
+    ops: ["Quinto", "Sexto", "Séptimo", "Octavo"],
+    r: 3,
+    fb_bien: "¡Correcto! Neptuno es el octavo y último planeta del Sistema Solar desde el Sol, a unos 30 UA (unidades astronómicas) de distancia.",
+    fb_mal: "Neptuno es el octavo planeta del Sistema Solar. Después de Urano, es el último de los planetas reconocidos actualmente."
+  },
+  {
+    q: "¿Qué gas le da a Neptuno su característica color azul intenso?",
+    ops: ["Hidrógeno", "Metano (CH₄)", "Amoníaco", "Dióxido de carbono"],
+    r: 1,
+    fb_bien: "¡Exacto! El metano en la atmósfera de Neptuno absorbe la luz roja del Sol y refleja la luz azul, produciendo ese color azul vibrante tan característico.",
+    fb_mal: "El responsable del color azul es el metano (CH₄). Este gas absorbe la luz roja y refleja la azul, dando al planeta su aspecto característico."
+  },
+  {
+    q: "La \"lluvia de diamantes\" en Neptuno es actualmente...",
+    ops: [
+      "Un fenómeno confirmado por naves espaciales",
+      "Una hipótesis apoyada por modelos y experimentos de laboratorio",
+      "Una leyenda popular sin base científica",
+      "Un hecho observado directamente por el telescopio Hubble"
+    ],
+    r: 1,
+    fb_bien: "¡Perfecto! Es una hipótesis científica bien fundamentada. Está respaldada por modelos matemáticos y experimentos con láseres de alta potencia, pero ninguna nave ha penetrado el interior de Neptuno para confirmarlo directamente.",
+    fb_mal: "La lluvia de diamantes es una hipótesis científica, no un fenómeno observado directamente. Está respaldada por experimentos de laboratorio como los del SLAC y European XFEL, pero sin confirmación directa del interior del planeta."
+  },
+  {
+    q: "¿A qué velocidad aproximada pueden llegar los vientos de Neptuno?",
+    ops: ["600 km/h", "1.200 km/h", "2.100 km/h", "3.500 km/h"],
+    r: 2,
+    fb_bien: "¡Asombroso! Los vientos de Neptuno alcanzan hasta 2.100 km/h, lo que los convierte en los más rápidos de cualquier planeta del Sistema Solar. ¡Superan la velocidad del sonido!",
+    fb_mal: "Los vientos de Neptuno pueden alcanzar hasta 2.100 km/h, los más veloces del Sistema Solar y superiores a la velocidad del sonido en la Tierra (≈1.235 km/h)."
+  },
+  {
+    q: "¿Qué experimento científico real ha logrado crear nanodiamantes bajo condiciones similares a las del interior de Neptuno?",
+    ops: [
+      "Misión Voyager 2 de la NASA",
+      "Experimentos con láseres de alta potencia (SLAC / European XFEL)",
+      "Telescopio Espacial Hubble",
+      "Sonda Galileo en Júpiter"
+    ],
+    r: 1,
+    fb_bien: "¡Excelente! El SLAC National Accelerator Laboratory (2017) y el European XFEL (2022) han realizado experimentos usando láseres de alta potencia para comprimir plásticos ricos en carbono, logrando crear nanodiamantes bajo condiciones extremas similares a las del interior de Neptuno.",
+    fb_mal: "Los experimentos del SLAC y European XFEL utilizan láseres de alta potencia para comprimir materiales ricos en carbono y recrear condiciones planetarias extremas. Voyager 2 sobrevoló Neptuno en 1989 pero no penetró el planeta."
+  },
+  {
+    q: "¿Cuánto tiempo tarda Neptuno en dar una vuelta completa alrededor del Sol?",
+    ops: ["12 años terrestres", "29 años terrestres", "84 años terrestres", "164,8 años terrestres"],
+    r: 3,
+    fb_bien: "¡Correcto! Una órbita completa de Neptuno dura casi 165 años terrestres. Fue descubierto en 1846 y recién completó su primera vuelta completa desde el descubrimiento en el año 2011.",
+    fb_mal: "Neptuno tarda aproximadamente 164,8 años terrestres en completar una órbita. Fue descubierto en 1846 y completó su primera vuelta observada en 2011."
+  }
+];
+
+let qActual=0, puntos=0, respondida=false;
+
+function renderQuiz() {
+  // Progreso
+  const prog = document.getElementById('quiz-progreso');
+  prog.innerHTML = '';
+  preguntas.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'quiz-paso' + (i===qActual?' activo':'');
+    prog.appendChild(d);
+  });
+
+  const box = document.getElementById('quiz-contenido');
+  const pq = preguntas[qActual];
+  respondida = false;
+
+  box.innerHTML = `
+    <div class="q-numero">◦ PREGUNTA ${qActual+1} DE ${preguntas.length} ◦</div>
+    <p class="q-texto">${pq.q}</p>
+    <div class="q-opciones">
+      ${pq.ops.map((op,i) => `<button class="q-opcion" onclick="responder(${i})">${op}</button>`).join('')}
+    </div>
+    <div class="q-feedback" id="q-feedback"></div>
+    <div class="q-nav">
+      <span class="q-score">Aciertos: ${puntos}/${qActual}</span>
+      <button class="btn-ctrl" id="btn-siguiente" onclick="siguiente()" style="display:none">
+        ${qActual < preguntas.length-1 ? 'SIGUIENTE →' : 'VER RESULTADO →'}
+      </button>
+    </div>
+  `;
+}
+
+function responder(idx) {
+  if(respondida) return;
+  respondida = true;
+  const pq = preguntas[qActual];
+  const opts = document.querySelectorAll('.q-opcion');
+  const fb = document.getElementById('q-feedback');
+
+  opts.forEach((btn,i) => {
+    btn.disabled = true;
+    if(i===pq.r) btn.classList.add('correcto');
+    else if(i===idx) btn.classList.add('incorrecto');
+  });
+
+  if(idx === pq.r) {
+    puntos++;
+    fb.className='q-feedback mostrar bien';
+    fb.innerHTML='✓ ' + pq.fb_bien;
+  } else {
+    fb.className='q-feedback mostrar mal';
+    fb.innerHTML='✗ ' + pq.fb_mal;
+  }
+
+  // Update progreso
+  const pasos = document.querySelectorAll('.quiz-paso');
+  if(pasos[qActual]) pasos[qActual].className = 'quiz-paso ' + (idx===pq.r?'correcto':'incorrecto');
+
+  document.getElementById('btn-siguiente').style.display='inline-block';
+  document.querySelector('.q-score').textContent = `Aciertos: ${puntos}/${qActual+1}`;
+}
+
+function siguiente() {
+  qActual++;
+  if(qActual >= preguntas.length) {
+    mostrarResultado();
+  } else {
+    renderQuiz();
+  }
+}
+
+function mostrarResultado() {
+  document.getElementById('quiz-box').style.display='none';
+  document.getElementById('quiz-progreso').style.display='none';
+  const res = document.getElementById('quiz-resultado');
+  res.classList.add('mostrar');
+  const pct = puntos/preguntas.length;
+  let emoji='🌌', titulo='', desc='';
+  if(pct===1){emoji='💎';titulo='¡PERFECTO! EXPLORADOR EXPERTO';desc='Dominaste todos los conceptos sobre Neptuno. ¡Eres un verdadero explorador del espacio profundo!';}
+  else if(pct>=0.8){emoji='🚀';titulo='¡EXCELENTE! CASI PERFECTO';desc='Tienes un gran conocimiento sobre Neptuno. Repasa los conceptos de los diamantes para ser un experto completo.';}
+  else if(pct>=0.5){emoji='🔭';titulo='BUEN TRABAJO, EXPLORADOR';desc='Vas por buen camino. Revisa la sección de la atmósfera y el simulador de diamantes para reforzar lo aprendido.';}
+  else{emoji='🌑';titulo='SIGUE EXPLORANDO';desc='Neptuno tiene muchos secretos que descubrir. Vuelve a revisar las secciones del simulador y la línea de tiempo.';}
+  document.getElementById('res-emoji').textContent=emoji;
+  document.getElementById('res-titulo').textContent=titulo;
+  document.getElementById('res-puntaje').textContent=`${puntos}/${preguntas.length}`;
+  document.getElementById('res-desc').textContent=desc;
+}
+
+function reiniciarQuiz() {
+  qActual=0; puntos=0;
+  document.getElementById('quiz-box').style.display='block';
+  document.getElementById('quiz-progreso').style.display='flex';
+  document.getElementById('quiz-resultado').classList.remove('mostrar');
+  renderQuiz();
+}
+
+// ========================
+// SCROLL REVEAL
+// ========================
+function initReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, {threshold:0.15});
+  document.querySelectorAll('.reveal, .tl-item').forEach(el=>observer.observe(el));
+}
+
+// ========================
+// INIT
+// ========================
+document.addEventListener('DOMContentLoaded', () => {
+  initReveal();
+  initSim();
+  renderQuiz();
+  updateSimStats();
+});
+</script>
+</body>
+</html>
